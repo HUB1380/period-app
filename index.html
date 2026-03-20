@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>花期日历 🌸 经期管理</title>
+
+<!-- PWA 配置 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ec4899">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="花期日历">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --pink:    #f472b6;
+    --rose:    #fb7185;
+    --purple:  #a78bfa;
+    --light:   #fdf2f8;
+    --card:    #ffffff;
+    --text:    #374151;
+    --muted:   #9ca3af;
+    --border:  #f3e8ff;
+    --period:  #fda4af;
+    --predict: #fed7aa;
+    --ovulate: #a5f3fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #ec4899, #a855f7);
+    color: #fff;
+    padding: 20px 16px 16px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p  { font-size: 0.85rem; opacity: .85; margin-top: 4px; }
+
+  /* ── Nav Tabs ── */
+  nav {
+    display: flex;
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+  }
+  nav button {
+    flex: 1; min-width: 70px;
+    padding: 12px 8px;
+    border: none; background: none;
+    font-size: .85rem; color: var(--muted);
+    cursor: pointer; transition: .2s;
+    white-space: nowrap;
+  }
+  nav button.active {
+    color: #ec4899;
+    border-bottom: 2px solid #ec4899;
+    font-weight: 700;
+    margin-bottom: -2px;
+  }
+
+  /* ── Pages ── */
+  .page { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,.06);
+  }
+  .card-title {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 10px;
+  }
+
+  /* ── Status Banner ── */
+  #status-banner {
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    text-align: center;
+    background: linear-gradient(135deg, #fce7f3, #ede9fe);
+  }
+  #status-banner .status-emoji { font-size: 2.5rem; }
+  #status-banner .status-title { font-size: 1.1rem; font-weight: 700; margin: 6px 0 2px; }
+  #status-banner .status-sub   { font-size: .85rem; color: #7c3aed; }
+
+  /* ── Stats Grid ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-item { background: var(--light); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat-val  { font-size: 1.5rem; font-weight: 700; color: #ec4899; }
+  .stat-lbl  { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Calendar ── */
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .cal-header span { font-weight: 700; font-size: 1rem; }
+  .cal-nav { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ec4899; padding: 4px 10px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-day-name {
+    text-align: center; font-size: .7rem; color: var(--muted);
+    font-weight: 600; padding-bottom: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: .8rem; cursor: pointer;
+    transition: .15s; position: relative;
+  }
+  .cal-day:hover   { background: #fce7f3; }
+  .cal-day.today   { border: 2px solid #ec4899; font-weight: 700; }
+  .cal-day.period  { background: var(--period); color: #9f1239; font-weight: 700; }
+  .cal-day.predict { background: var(--predict); color: #92400e; }
+  .cal-day.ovulate { background: var(--ovulate); color: #164e63; }
+  .cal-day.empty   { cursor: default; }
+  .cal-day.selected { ring: 2px solid #a855f7; box-shadow: 0 0 0 2px #a855f7; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: .75rem; color: var(--muted); }
+  .legend-dot  { width: 12px; height: 12px; border-radius: 50%; }
+
+  /* ── Form ── */
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+  input[type="date"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb;
+    border-radius: 10px; font-size: .9rem; font-family: inherit;
+    transition: border .2s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #ec4899; }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* ── Buttons ── */
+  .btn {
+    width: 100%; padding: 12px; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: .2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #ec4899, #a855f7);
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+  .btn-danger  { background: #fee2e2; color: #dc2626; }
+  .btn-sm {
+    width: auto; padding: 6px 14px; font-size: .8rem; border-radius: 8px;
+  }
+
+  /* ── Record List ── */
+  .record-item {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .record-dates { font-weight: 700; font-size: .95rem; }
+  .record-meta  { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+  .record-note  { font-size: .8rem; color: #6b7280; margin-top: 4px; font-style: italic; }
+
+  /* ── Symptoms ── */
+  .symptom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .symptom-btn {
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: .78rem;
+    transition: .15s;
+  }
+  .symptom-btn .s-icon { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+  .symptom-btn.active  { border-color: #ec4899; background: #fce7f3; color: #9d174d; }
+
+  /* ── Insights ── */
+  .insight-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .insight-row:last-child { border-bottom: none; }
+  .insight-icon { font-size: 1.5rem; width: 36px; text-align: center; }
+  .insight-text .t { font-size: .9rem; font-weight: 600; }
+  .insight-text .s { font-size: .78rem; color: var(--muted); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1f2937; color: #fff; padding: 10px 20px;
+    border-radius: 20px; font-size: .85rem; opacity: 0;
+    transition: opacity .3s; pointer-events: none; white-space: nowrap; z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+
+  .empty-state { text-align: center; color: var(--muted); padding: 30px 0; font-size: .9rem; }
+  .empty-state .e { font-size: 2.5rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 花期日历</h1>
+  <p>你的贴心经期管理助手</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('home')">🏠 首页</button>
+  <button onclick="showPage('calendar')">📅 日历</button>
+  <button onclick="showPage('record')">✏️ 记录</button>
+  <button onclick="showPage('history')">📋 历史</button>
+  <button onclick="showPage('insights')">💡 分析</button>
+</nav>
+
+<!-- ════════════════════════ 首页 ════════════════════════ -->
+<div id="page-home" class="page active">
+
+  <div id="status-banner">
+    <div class="status-emoji" id="s-emoji">🌸</div>
+    <div class="status-title" id="s-title">加载中…</div>
+    <div class="status-sub"  id="s-sub"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">本周期概览</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-val" id="stat-cycle">—</div>
+        <div class="stat-lbl">平均周期（天）</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-duration">—</div>
+        <div class="stat-lbl">平均经期（天）</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-next">—</div>
+        <div class="stat-lbl">距下次（天）</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-records">0</div>
+        <div class="stat-lbl">记录次数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="card-today-symptoms" style="display:none">
+    <div class="card-title">今日症状快记</div>
+    <div class="symptom-grid" id="quick-symptoms"></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="saveQuickSymptoms()">保存今日症状</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">周期提醒</div>
+    <div id="reminders-list"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ 日历 ════════════════════════ -->
+<div id="page-calendar" class="page">
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <span id="cal-month-title"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-day-names"></div>
+    <div class="cal-grid" id="cal-body"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--period)"></div>经期</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--predict)"></div>预测经期</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--ovulate)"></div>排卵期</div>
+      <div class="legend-item"><div class="legend-dot" style="border:2px solid #ec4899"></div>今天</div>
+    </div>
+  </div>
+  <div class="card" id="cal-day-detail" style="display:none">
+    <div class="card-title" id="cal-detail-title">选中日期</div>
+    <div id="cal-detail-body"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ 记录 ════════════════════════ -->
+<div id="page-record" class="page">
+  <div class="card">
+    <div class="card-title">记录经期</div>
+    <div class="form-group">
+      <label>开始日期 *</label>
+      <input type="date" id="r-start">
+    </div>
+    <div class="form-group">
+      <label>结束日期（可先不填，经期结束后再补）</label>
+      <input type="date" id="r-end">
+    </div>
+    <div class="form-group">
+      <label>经量</label>
+      <select id="r-flow">
+        <option value="">请选择</option>
+        <option value="少">少量</option>
+        <option value="中">正常</option>
+        <option value="多">偏多</option>
+        <option value="很多">很多</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>症状</label>
+      <div class="symptom-grid" id="record-symptoms"></div>
+    </div>
+    <div class="form-group">
+      <label>备注</label>
+      <textarea id="r-note" placeholder="心情、特殊情况…"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveRecord()">💾 保存记录</button>
+  </div>
+</div>
+
+<!-- ════════════════════════ 历史 ════════════════════════ -->
+<div id="page-history" class="page">
+  <div id="history-list"></div>
+</div>
+
+<!-- ════════════════════════ 分析 ════════════════════════ -->
+<div id="page-insights" class="page">
+  <div class="card">
+    <div class="card-title">周期分析</div>
+    <div id="insights-body">
+      <div class="empty-state"><div class="e">📊</div>记录2次以上经期后查看分析</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">常见症状频率</div>
+    <div id="symptom-stats"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  数据模型 & 持久化
+// ══════════════════════════════════════════════════
+const SYMPTOMS_DEF = [
+  { key:"cramp",    label:"痛经",    icon:"😣" },
+  { key:"bloat",    label:"腹胀",    icon:"🫃" },
+  { key:"headache", label:"头痛",    icon:"🤕" },
+  { key:"mood",     label:"情绪波动", icon:"😢" },
+  { key:"tired",    label:"疲劳",    icon:"😴" },
+  { key:"acne",     label:"痘痘",    icon:"😤" },
+  { key:"breast",   label:"胸部不适", icon:"💢" },
+  { key:"backache", label:"腰痛",    icon:"🔙" },
+  { key:"nausea",   label:"恶心",    icon:"🤢" },
+];
+
+function load()  { return JSON.parse(localStorage.getItem("period_records") || "[]"); }
+function save(d) { localStorage.setItem("period_records", JSON.stringify(d)); }
+function loadSymptomLog() { return JSON.parse(localStorage.getItem("symptom_log") || "{}"); }
+function saveSymptomLog(d){ localStorage.setItem("symptom_log", JSON.stringify(d)); }
+
+// ── date helpers ──
+const fmt  = d => d.toISOString().slice(0,10);
+const today = () => fmt(new Date());
+function addDays(str, n) {
+  const d = new Date(str); d.setDate(d.getDate() + n); return fmt(d);
+}
+function diffDays(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+function inRange(date, start, end) {
+  return date >= start && date <= end;
+}
+
+// ── compute stats from records ──
+function computeStats() {
+  const recs = load().filter(r => r.start).sort((a,b) => a.start > b.start ? 1:-1);
+  let avgCycle = 28, avgDur = 5;
+  if (recs.length >= 2) {
+    const cycles = [];
+    for (let i = 1; i < recs.length; i++)
+      cycles.push(diffDays(recs[i-1].start, recs[i].start));
+    avgCycle = Math.round(cycles.reduce((a,b)=>a+b,0)/cycles.length);
+  }
+  const withEnd = recs.filter(r => r.end);
+  if (withEnd.length) {
+    avgDur = Math.round(
+      withEnd.reduce((a,r) => a + diffDays(r.start, r.end) + 1, 0) / withEnd.length
+    );
+  }
+  const last = recs[recs.length - 1] || null;
+  return { recs, avgCycle, avgDur, last };
+}
+
+// ── predict next periods ──
+function getPredictions(n=3) {
+  const { recs, avgCycle, avgDur, last } = computeStats();
+  if (!last) return [];
+  const preds = [];
+  let base = last.start;
+  for (let i = 0; i < n; i++) {
+    const start = addDays(base, avgCycle);
+    const end   = addDays(start, avgDur - 1);
+    preds.push({ start, end, predicted: true });
+    base = start;
+  }
+  return preds;
+}
+
+// ── build a set of all period dates ──
+function getPeriodDates() {
+  const set = {};
+  for (const r of load()) {
+    if (!r.start) continue;
+    const end = r.end || r.start;
+    let d = r.start;
+    while (d <= end) { set[d] = "period"; d = addDays(d, 1); }
+  }
+  for (const p of getPredictions()) {
+    let d = p.start;
+    while (d <= p.end) { if (!set[d]) set[d] = "predict"; d = addDays(d, 1); }
+  }
+  return set;
+}
+
+// ── ovulation dates (14 days before next predicted period) ──
+function getOvulationDates() {
+  const { avgCycle, avgDur } = computeStats();
+  const preds = getPredictions(3);
+  const set = {};
+  for (const p of preds) {
+    // ovulation window: ~day-14 from next period, ±2 days
+    for (let i = -2; i <= 2; i++) {
+      const d = addDays(p.start, -14 + i);
+      if (!set[d]) set[d] = "ovulate";
+    }
+  }
+  return set;
+}
+
+// ══════════════════════════════════════════════════
+//  Page nav
+// ══════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + id).classList.add("active");
+  const btns = document.querySelectorAll("nav button");
+  const map = { home:0, calendar:1, record:2, history:3, insights:4 };
+  btns[map[id]].classList.add("active");
+  if (id === "home")     renderHome();
+  if (id === "calendar") renderCalendar();
+  if (id === "history")  renderHistory();
+  if (id === "insights") renderInsights();
+}
+
+// ══════════════════════════════════════════════════
+//  首页
+// ══════════════════════════════════════════════════
+function renderHome() {
+  const { recs, avgCycle, avgDur, last } = computeStats();
+  const td = today();
+
+  // status banner
+  let emoji, title, sub;
+  const periodDates = getPeriodDates();
+  const ovrDates    = getOvulationDates();
+
+  if (periodDates[td] === "period") {
+    // in period
+    const rec = recs.find(r => r.start <= td && (r.end||r.start) >= td);
+    const day = rec ? diffDays(rec.start, td) + 1 : 1;
+    emoji = "🩸"; title = `经期第 ${day} 天`; sub = "好好休息，多喝热水 💕";
+    // show quick symptoms
+    document.getElementById("card-today-symptoms").style.display = "block";
+    renderSymptomButtons("quick-symptoms", "quick");
+  } else if (ovrDates[td] === "ovulate") {
+    emoji = "🥚"; title = "排卵期"; sub = "注意身体信号～";
+    document.getElementById("card-today-symptoms").style.display = "none";
+  } else if (periodDates[td] === "predict") {
+    emoji = "📆"; title = "预测经期即将到来"; sub = "做好准备哦～";
+    document.getElementById("card-today-symptoms").style.display = "none";
+  } else if (last) {
+    const nextPred = getPredictions(1)[0];
+    const daysLeft = diffDays(td, nextPred?.start || addDays(td, 28));
+    if (daysLeft <= 3 && daysLeft > 0) {
+      emoji = "⏰"; title = `还有 ${daysLeft} 天来月经`; sub = "提前准备卫生用品 🌟";
+    } else if (daysLeft > 0) {
+      emoji = "🌸"; title = `安全期（还有 ${daysLeft} 天）`; sub = "保持好心情 🎵";
+    } else {
+      emoji = "❓"; title = "月经可能推迟了"; sub = "如超过7天，建议就医检查";
+    }
+    document.getElementById("card-today-symptoms").style.display = "none";
+  } else {
+    emoji = "👋"; title = "欢迎使用花期日历"; sub = "点击「记录」添加你的第一条经期数据";
+    document.getElementById("card-today-symptoms").style.display = "none";
+  }
+
+  document.getElementById("s-emoji").textContent  = emoji;
+  document.getElementById("s-title").textContent  = title;
+  document.getElementById("s-sub").textContent    = sub;
+
+  // stats
+  document.getElementById("stat-cycle").textContent   = recs.length >= 2 ? avgCycle : "—";
+  document.getElementById("stat-duration").textContent= recs.length >= 1 ? avgDur   : "—";
+  document.getElementById("stat-records").textContent = recs.length;
+
+  const nextPred = getPredictions(1)[0];
+  if (nextPred) {
+    const d = diffDays(td, nextPred.start);
+    document.getElementById("stat-next").textContent = d > 0 ? d : 0;
+  } else {
+    document.getElementById("stat-next").textContent = "—";
+  }
+
+  // reminders
+  const remDiv = document.getElementById("reminders-list");
+  const preds  = getPredictions(2);
+  if (!preds.length) {
+    remDiv.innerHTML = `<div class="empty-state"><div class="e">🌙</div>添加经期记录后查看预测</div>`;
+    return;
+  }
+  remDiv.innerHTML = preds.map((p, i) => {
+    const d = diffDays(td, p.start);
+    const label = i === 0 ? "下次预测" : "再下次预测";
+    const icon  = d <= 3 ? "🔴" : d <= 7 ? "🟠" : "🟢";
+    return `<div class="insight-row">
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-text">
+        <div class="t">${label}：${p.start} ～ ${p.end}</div>
+        <div class="s">${d > 0 ? `还有 ${d} 天` : d === 0 ? "今天开始！" : `已过 ${-d} 天`}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════
+//  日历
+// ══════════════════════════════════════════════════
+let calYear, calMonth;
+(function() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+})();
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const names = ["日","一","二","三","四","五","六"];
+  const dnEl  = document.getElementById("cal-day-names");
+  dnEl.innerHTML = names.map(n => `<div class="cal-day-name">${n}</div>`).join("");
+
+  const title = `${calYear}年${calMonth+1}月`;
+  document.getElementById("cal-month-title").textContent = title;
+
+  const periodDates = getPeriodDates();
+  const ovrDates    = getOvulationDates();
+  const td = today();
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  let html = "";
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    let cls = "cal-day";
+    if (ds === td) cls += " today";
+    if (periodDates[ds] === "period")  cls += " period";
+    else if (ovrDates[ds] === "ovulate") cls += " ovulate";
+    else if (periodDates[ds] === "predict") cls += " predict";
+    html += `<div class="${cls}" onclick="calDayClick('${ds}')">${d}</div>`;
+  }
+  document.getElementById("cal-body").innerHTML = html;
+  document.getElementById("cal-day-detail").style.display = "none";
+}
+
+function calDayClick(ds) {
+  const periodDates = getPeriodDates();
+  const ovrDates    = getOvulationDates();
+  const recs = load();
+  const symLog = loadSymptomLog();
+  const detail = document.getElementById("cal-day-detail");
+  document.getElementById("cal-detail-title").textContent = ds;
+
+  let html = "";
+  const rec = recs.find(r => r.start <= ds && (r.end||r.start) >= ds);
+  if (rec) {
+    html += `<div class="insight-row">
+      <div class="insight-icon">🩸</div>
+      <div class="insight-text">
+        <div class="t">经期：${rec.start} ～ ${rec.end || "(未结束)"}</div>
+        <div class="s">经量：${rec.flow || "未记录"} · 第${diffDays(rec.start,ds)+1}天</div>
+        ${rec.note ? `<div class="s">${rec.note}</div>` : ""}
+      </div>
+    </div>`;
+  } else if (periodDates[ds] === "predict") {
+    html += `<div class="insight-row"><div class="insight-icon">📆</div><div class="insight-text"><div class="t">预测经期</div></div></div>`;
+  } else if (ovrDates[ds] === "ovulate") {
+    html += `<div class="insight-row"><div class="insight-icon">🥚</div><div class="insight-text"><div class="t">预测排卵期</div></div></div>`;
+  } else {
+    html += `<div class="insight-row"><div class="insight-icon">🌿</div><div class="insight-text"><div class="t">安全期</div></div></div>`;
+  }
+  if (symLog[ds]) {
+    const syms = SYMPTOMS_DEF.filter(s => symLog[ds][s.key]);
+    if (syms.length) html += `<div style="margin-top:8px;font-size:.8rem;color:#6b7280">症状：${syms.map(s=>s.icon+s.label).join(" · ")}</div>`;
+  }
+  document.getElementById("cal-detail-body").innerHTML = html || "暂无记录";
+  detail.style.display = "block";
+}
+
+// ══════════════════════════════════════════════════
+//  记录页 & 症状按钮
+// ══════════════════════════════════════════════════
+function renderSymptomButtons(containerId, mode) {
+  const el = document.getElementById(containerId);
+  const symLog = loadSymptomLog();
+  const td = today();
+  const existing = (mode === "quick" && symLog[td]) ? symLog[td] : {};
+  el.innerHTML = SYMPTOMS_DEF.map(s => `
+    <div class="symptom-btn ${existing[s.key] ? "active" : ""}"
+         id="${mode}-${s.key}"
+         onclick="toggleSymptom('${mode}','${s.key}',this)">
+      <span class="s-icon">${s.icon}</span>${s.label}
+    </div>`).join("");
+}
+
+function toggleSymptom(mode, key, el) {
+  el.classList.toggle("active");
+}
+
+function getSelectedSymptoms(mode) {
+  const sel = {};
+  SYMPTOMS_DEF.forEach(s => {
+    const el = document.getElementById(`${mode}-${s.key}`);
+    if (el && el.classList.contains("active")) sel[s.key] = true;
+  });
+  return sel;
+}
+
+function saveQuickSymptoms() {
+  const log = loadSymptomLog();
+  log[today()] = getSelectedSymptoms("quick");
+  saveSymptomLog(log);
+  showToast("✅ 今日症状已保存");
+}
+
+// 初始化记录页症状按钮
+function initRecordPage() {
+  renderSymptomButtons("record-symptoms", "record");
+  document.getElementById("r-start").value = today();
+}
+
+function saveRecord() {
+  const start = document.getElementById("r-start").value;
+  const end   = document.getElementById("r-end").value;
+  const flow  = document.getElementById("r-flow").value;
+  const note  = document.getElementById("r-note").value.trim();
+  const syms  = getSelectedSymptoms("record");
+
+  if (!start) { showToast("❌ 请填写开始日期"); return; }
+  if (end && end < start) { showToast("❌ 结束日期不能早于开始日期"); return; }
+
+  const recs = load();
+  // check overlap
+  const overlap = recs.find(r => {
+    const rEnd = r.end || r.start;
+    return (start <= rEnd && (end||start) >= r.start);
+  });
+  if (overlap) {
+    if (!confirm(`⚠️ 与已有记录（${overlap.start}）重叠，是否覆盖？`)) return;
+    const idx = recs.indexOf(overlap);
+    recs.splice(idx, 1);
+  }
+
+  recs.push({ id: Date.now(), start, end, flow, syms, note });
+  save(recs);
+
+  // save symptoms to log
+  if (Object.keys(syms).length) {
+    const log = loadSymptomLog();
+    let d = start;
+    while (d <= (end||start)) { log[d] = syms; d = addDays(d, 1); }
+    saveSymptomLog(log);
+  }
+
+  showToast("✅ 记录已保存！");
+  // reset form
+  document.getElementById("r-end").value  = "";
+  document.getElementById("r-flow").value = "";
+  document.getElementById("r-note").value = "";
+  renderSymptomButtons("record-symptoms", "record");
+}
+
+// ══════════════════════════════════════════════════
+//  历史
+// ══════════════════════════════════════════════════
+function renderHistory() {
+  const recs = load().slice().reverse();
+  const el = document.getElementById("history-list");
+  if (!recs.length) {
+    el.innerHTML = `<div class="card"><div class="empty-state"><div class="e">📭</div>暂无记录<br><small>去「记录」页添加第一条数据</small></div></div>`;
+    return;
+  }
+  el.innerHTML = recs.map((r, i) => {
+    const dur = r.end ? diffDays(r.start, r.end) + 1 : "?";
+    const syms = SYMPTOMS_DEF.filter(s => r.syms && r.syms[s.key]).map(s => s.icon).join("");
+    return `<div class="record-item">
+      <div>
+        <div class="record-dates">🩸 ${r.start}${r.end ? " ～ " + r.end : " （进行中）"}</div>
+        <div class="record-meta">持续 ${dur} 天 · 经量：${r.flow || "未记录"} ${syms ? "· " + syms : ""}</div>
+        ${r.note ? `<div class="record-note">"${r.note}"</div>` : ""}
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})">删除</button>
+    </div>`;
+  }).join("");
+}
+
+function deleteRecord(id) {
+  if (!confirm("确认删除这条记录？")) return;
+  const recs = load().filter(r => r.id !== id);
+  save(recs);
+  renderHistory();
+  showToast("🗑️ 已删除");
+}
+
+// ══════════════════════════════════════════════════
+//  分析
+// ══════════════════════════════════════════════════
+function renderInsights() {
+  const { recs, avgCycle, avgDur } = computeStats();
+  const el = document.getElementById("insights-body");
+
+  if (recs.length < 2) {
+    el.innerHTML = `<div class="empty-state"><div class="e">📊</div>记录2次以上经期后查看分析</div>`;
+  } else {
+    const cycles = [];
+    for (let i = 1; i < recs.length; i++)
+      cycles.push(diffDays(recs[i-1].start, recs[i].start));
+    const maxC = Math.max(...cycles), minC = Math.min(...cycles);
+    const regular = (maxC - minC) <= 7;
+
+    el.innerHTML = `
+      <div class="insight-row">
+        <div class="insight-icon">📏</div>
+        <div class="insight-text">
+          <div class="t">平均周期：${avgCycle} 天</div>
+          <div class="s">范围 ${minC}～${maxC} 天 · ${regular ? "✅ 较规律" : "⚠️ 波动较大"}</div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-icon">📅</div>
+        <div class="insight-text">
+          <div class="t">平均经期：${avgDur} 天</div>
+          <div class="s">${avgDur >= 3 && avgDur <= 7 ? "✅ 在正常范围内（3~7天）" : "⚠️ 建议咨询医生"}</div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-icon">🥚</div>
+        <div class="insight-text">
+          <div class="t">预测排卵日</div>
+          <div class="s">下次月经前约14天（周期第${avgCycle - 14}天）</div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-icon">📈</div>
+        <div class="insight-text">
+          <div class="t">共记录 ${recs.length} 次经期</div>
+          <div class="s">数据越多，预测越准确</div>
+        </div>
+      </div>`;
+  }
+
+  // symptom stats
+  const log = loadSymptomLog();
+  const counts = {};
+  SYMPTOMS_DEF.forEach(s => counts[s.key] = 0);
+  Object.values(log).forEach(day => {
+    SYMPTOMS_DEF.forEach(s => { if (day[s.key]) counts[s.key]++; });
+  });
+  const total = Object.values(log).length || 1;
+  const sorted = SYMPTOMS_DEF.slice().sort((a,b) => counts[b.key] - counts[a.key]);
+  const symEl = document.getElementById("symptom-stats");
+  if (!Object.values(counts).some(v => v > 0)) {
+    symEl.innerHTML = `<div class="empty-state" style="padding:16px"><div class="e">😊</div>暂无症状数据</div>`;
+    return;
+  }
+  symEl.innerHTML = sorted.map(s => {
+    const pct = Math.round(counts[s.key] / total * 100);
+    if (!pct) return "";
+    return `<div class="insight-row">
+      <div class="insight-icon">${s.icon}</div>
+      <div class="insight-text" style="flex:1">
+        <div class="t">${s.label}</div>
+        <div style="background:#f3f4f6;border-radius:99px;height:6px;margin-top:4px">
+          <div style="width:${pct}%;background:linear-gradient(90deg,#ec4899,#a855f7);height:6px;border-radius:99px"></div>
+        </div>
+      </div>
+      <div style="font-size:.8rem;color:#ec4899;font-weight:700;min-width:32px;text-align:right">${pct}%</div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════
+//  Toast
+// ══════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+// ══════════════════════════════════════════════════
+//  Init
+// ══════════════════════════════════════════════════
+initRecordPage();
+renderHome();
+
+// 注册 Service Worker（离线使用 + 可安装）
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => console.log("✅ SW 注册成功"))
+      .catch(e => console.log("SW 注册失败:", e));
+  });
+}
+</script>
+</body>
+</html>
