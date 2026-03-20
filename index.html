@@ -3,314 +3,351 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>花期日历 🌸 经期管理</title>
-
-<!-- PWA 配置 -->
+<title>X 经期管理</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ec4899">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="theme-color" content="#e91e8c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="花期日历">
+<meta name="apple-mobile-web-app-title" content="X经期">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-  :root {
-    --pink:    #f472b6;
-    --rose:    #fb7185;
-    --purple:  #a78bfa;
-    --light:   #fdf2f8;
-    --card:    #ffffff;
-    --text:    #374151;
-    --muted:   #9ca3af;
-    --border:  #f3e8ff;
-    --period:  #fda4af;
-    --predict: #fed7aa;
-    --ovulate: #a5f3fc;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--light);
-    color: var(--text);
-    min-height: 100vh;
-  }
+:root {
+  --p:      #e91e8c;
+  --p2:     #9c27b0;
+  --grad:   linear-gradient(135deg, #e91e8c, #9c27b0);
+  --plight: #fce4ec;
+  --bg:     #f5f5f7;
+  --card:   #ffffff;
+  --text:   #1a1a2e;
+  --muted:  #8e8e93;
+  --border: #ebebf0;
+  --r-lg:   20px;
+  --r-md:   14px;
+  --r-sm:   10px;
+  --sh:     0 2px 16px rgba(0,0,0,0.06);
+  --sh-md:  0 6px 28px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;padding-bottom:72px;
+}
 
-  /* ── Header ── */
-  header {
-    background: linear-gradient(135deg, #ec4899, #a855f7);
-    color: #fff;
-    padding: 20px 16px 16px;
-    text-align: center;
-  }
-  header h1 { font-size: 1.5rem; font-weight: 700; }
-  header p  { font-size: 0.85rem; opacity: .85; margin-top: 4px; }
+/* ── Header ── */
+.hdr{
+  background:var(--grad);color:#fff;
+  padding:calc(env(safe-area-inset-top,0px)+14px) 18px 18px;
+}
+.hdr-row{display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:1.25rem;font-weight:800;letter-spacing:-.5px}
+.hdr-sub{font-size:.78rem;opacity:.85;margin-top:2px}
+.hdr-btn{
+  background:rgba(255,255,255,.2);border:none;color:#fff;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1rem;flex-shrink:0;
+}
 
-  /* ── Nav Tabs ── */
-  nav {
-    display: flex;
-    background: #fff;
-    border-bottom: 2px solid var(--border);
-    overflow-x: auto;
-  }
-  nav button {
-    flex: 1; min-width: 70px;
-    padding: 12px 8px;
-    border: none; background: none;
-    font-size: .85rem; color: var(--muted);
-    cursor: pointer; transition: .2s;
-    white-space: nowrap;
-  }
-  nav button.active {
-    color: #ec4899;
-    border-bottom: 2px solid #ec4899;
-    font-weight: 700;
-    margin-bottom: -2px;
-  }
+/* ── Bottom Nav ── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;padding-bottom:env(safe-area-inset-bottom,0);
+  z-index:100;box-shadow:0 -2px 20px rgba(0,0,0,.06);
+}
+.ntab{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:7px 2px;border:none;background:none;
+  cursor:pointer;color:var(--muted);font-size:.62rem;font-family:inherit;
+  transition:color .2s;gap:2px;
+}
+.ntab .ni{font-size:1.3rem;line-height:1}
+.ntab.active{color:var(--p)}
+.ntab.active .ni{filter:drop-shadow(0 0 4px rgba(233,30,140,.35))}
 
-  /* ── Pages ── */
-  .page { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
-  .page.active { display: block; }
+/* ── Pages ── */
+.page{display:none;padding:14px;max-width:480px;margin:0 auto}
+.page.active{display:block}
 
-  /* ── Cards ── */
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 8px rgba(0,0,0,.06);
-  }
-  .card-title {
-    font-size: .8rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: 10px;
-  }
+/* ── Card ── */
+.card{background:var(--card);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ct{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 
-  /* ── Status Banner ── */
-  #status-banner {
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 14px;
-    text-align: center;
-    background: linear-gradient(135deg, #fce7f3, #ede9fe);
-  }
-  #status-banner .status-emoji { font-size: 2.5rem; }
-  #status-banner .status-title { font-size: 1.1rem; font-weight: 700; margin: 6px 0 2px; }
-  #status-banner .status-sub   { font-size: .85rem; color: #7c3aed; }
+/* ── Status Card ── */
+.scard{
+  background:var(--grad);border-radius:var(--r-lg);padding:24px 18px;
+  margin-bottom:12px;color:#fff;text-align:center;box-shadow:var(--sh-md);
+  position:relative;overflow:hidden;
+}
+.scard::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+.scard::after{
+  content:'';position:absolute;bottom:-20px;left:-20px;
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.s-emoji{font-size:2.8rem;line-height:1;position:relative;z-index:1}
+.s-title{font-size:1.15rem;font-weight:800;margin:8px 0 3px;position:relative;z-index:1}
+.s-sub{font-size:.82rem;opacity:.9;position:relative;z-index:1}
 
-  /* ── Stats Grid ── */
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat-item { background: var(--light); border-radius: 12px; padding: 12px; text-align: center; }
-  .stat-val  { font-size: 1.5rem; font-weight: 700; color: #ec4899; }
-  .stat-lbl  { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+/* ── Stats Grid ── */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.si{background:var(--bg);border-radius:var(--r-md);padding:14px 10px;text-align:center}
+.sv{font-size:1.55rem;font-weight:800;color:var(--p);line-height:1}
+.sl{font-size:.7rem;color:var(--muted);margin-top:4px}
 
-  /* ── Calendar ── */
-  .cal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .cal-header span { font-weight: 700; font-size: 1rem; }
-  .cal-nav { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ec4899; padding: 4px 10px; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-  .cal-day-name {
-    text-align: center; font-size: .7rem; color: var(--muted);
-    font-weight: 600; padding-bottom: 4px;
-  }
-  .cal-day {
-    aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: .8rem; cursor: pointer;
-    transition: .15s; position: relative;
-  }
-  .cal-day:hover   { background: #fce7f3; }
-  .cal-day.today   { border: 2px solid #ec4899; font-weight: 700; }
-  .cal-day.period  { background: var(--period); color: #9f1239; font-weight: 700; }
-  .cal-day.predict { background: var(--predict); color: #92400e; }
-  .cal-day.ovulate { background: var(--ovulate); color: #164e63; }
-  .cal-day.empty   { cursor: default; }
-  .cal-day.selected { ring: 2px solid #a855f7; box-shadow: 0 0 0 2px #a855f7; }
+/* ── Insight Row ── */
+.irow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.irow:last-child{border-bottom:none}
+.iico{font-size:1.35rem;width:32px;text-align:center;flex-shrink:0}
+.itxt{flex:1}
+.itxt .t{font-size:.88rem;font-weight:600}
+.itxt .s{font-size:.75rem;color:var(--muted);margin-top:2px}
 
-  /* ── Legend ── */
-  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: .75rem; color: var(--muted); }
-  .legend-dot  { width: 12px; height: 12px; border-radius: 50%; }
+/* ── Calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav span{font-weight:700;font-size:1rem}
+.cal-nbtn{
+  background:var(--bg);border:none;width:32px;height:32px;border-radius:50%;
+  font-size:1rem;cursor:pointer;color:var(--p);
+  display:flex;align-items:center;justify-content:center;
+}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cdn{text-align:center;font-size:.66rem;color:var(--muted);font-weight:600;padding-bottom:5px}
+.cday{
+  aspect-ratio:1;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.76rem;cursor:pointer;transition:.15s;
+}
+.cday:hover{background:var(--plight)}
+.cday.today{font-weight:700;border:2px solid var(--p)}
+.cday.period{background:#ffb3c1;color:#880e4f;font-weight:700}
+.cday.predict{background:#ffe0b2;color:#e65100}
+.cday.ovulate{background:#b2ebf2;color:#006064}
+.cday.empty{cursor:default}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.litem{display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--muted)}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.day-detail{background:var(--card);border-radius:var(--r-lg);padding:14px;margin-bottom:12px;box-shadow:var(--sh);border-left:4px solid var(--p)}
 
-  /* ── Form ── */
-  .form-group { margin-bottom: 14px; }
-  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
-  input[type="date"], input[type="number"], select, textarea {
-    width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb;
-    border-radius: 10px; font-size: .9rem; font-family: inherit;
-    transition: border .2s; outline: none;
-  }
-  input:focus, select:focus, textarea:focus { border-color: #ec4899; }
-  textarea { resize: vertical; min-height: 70px; }
+/* ── Forms ── */
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:.82rem;font-weight:600;margin-bottom:5px}
+.fl .req{color:var(--p)}
+input[type=date],input[type=number],input[type=text],select,textarea{
+  width:100%;padding:10px 13px;border:1.5px solid var(--border);
+  border-radius:var(--r-sm);font-size:.88rem;font-family:inherit;
+  background:var(--bg);color:var(--text);transition:border .2s,background .2s;
+  outline:none;-webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--p);background:#fff}
+textarea{resize:vertical;min-height:68px}
+.row-fields{display:flex;gap:8px;align-items:flex-end}
+.row-fields .fg{flex:1;margin-bottom:0}
 
-  /* ── Buttons ── */
-  .btn {
-    width: 100%; padding: 12px; border: none; border-radius: 12px;
-    font-size: 1rem; font-weight: 700; cursor: pointer; transition: .2s;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, #ec4899, #a855f7);
-    color: #fff;
-  }
-  .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
-  .btn-danger  { background: #fee2e2; color: #dc2626; }
-  .btn-sm {
-    width: auto; padding: 6px 14px; font-size: .8rem; border-radius: 8px;
-  }
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 18px;border:none;border-radius:var(--r-md);
+  font-size:.93rem;font-weight:700;font-family:inherit;cursor:pointer;
+  transition:all .2s;width:100%;
+}
+.btn-p{background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(233,30,140,.25)}
+.btn-p:hover{opacity:.9;transform:translateY(-1px)}
+.btn-p:active{transform:translateY(0)}
+.btn-d{background:#fef2f2;color:#dc2626}
+.btn-g{background:var(--bg);color:var(--text)}
+.btn-sm{width:auto;padding:5px 12px;font-size:.76rem;border-radius:8px}
 
-  /* ── Record List ── */
-  .record-item {
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  .record-dates { font-weight: 700; font-size: .95rem; }
-  .record-meta  { font-size: .78rem; color: var(--muted); margin-top: 3px; }
-  .record-note  { font-size: .8rem; color: #6b7280; margin-top: 4px; font-style: italic; }
+/* ── Symptom Grid ── */
+.sgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.sbtn{
+  border:1.5px solid var(--border);background:var(--bg);border-radius:var(--r-sm);
+  padding:9px 4px;text-align:center;cursor:pointer;font-size:.73rem;
+  font-family:inherit;transition:all .15s;color:var(--text);
+}
+.sbtn .si{font-size:1.3rem;display:block;margin-bottom:3px}
+.sbtn.active{border-color:var(--p);background:var(--plight);color:#880e4f;font-weight:600}
 
-  /* ── Symptoms ── */
-  .symptom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .symptom-btn {
-    border: 1.5px solid #e5e7eb;
-    background: #fff;
-    border-radius: 10px;
-    padding: 8px 4px;
-    text-align: center;
-    cursor: pointer;
-    font-size: .78rem;
-    transition: .15s;
-  }
-  .symptom-btn .s-icon { font-size: 1.3rem; display: block; margin-bottom: 3px; }
-  .symptom-btn.active  { border-color: #ec4899; background: #fce7f3; color: #9d174d; }
+/* ── Record List ── */
+.ritem{
+  background:var(--bg);border-radius:var(--r-md);padding:13px;
+  margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;
+}
+.rdates{font-weight:700;font-size:.9rem}
+.rmeta{font-size:.75rem;color:var(--muted);margin-top:2px}
+.rnote{font-size:.76rem;color:#6b7280;margin-top:3px;font-style:italic}
 
-  /* ── Insights ── */
-  .insight-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
-  }
-  .insight-row:last-child { border-bottom: none; }
-  .insight-icon { font-size: 1.5rem; width: 36px; text-align: center; }
-  .insight-text .t { font-size: .9rem; font-weight: 600; }
-  .insight-text .s { font-size: .78rem; color: var(--muted); }
+/* ── Weight / BMI ── */
+.bmi-wrap{text-align:center;padding:16px 0 8px}
+.bmi-val{font-size:3rem;font-weight:900;line-height:1}
+.bmi-lbl{font-size:.85rem;font-weight:700;margin-top:2px}
+.bmi-tip{font-size:.75rem;color:var(--muted);margin-top:4px}
+.bmi-bar{
+  position:relative;height:8px;border-radius:99px;
+  background:linear-gradient(90deg,#60a5fa,#34d399,#fbbf24,#f87171);
+  margin:14px 0 4px;overflow:visible;
+}
+.bmi-ind{
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  width:18px;height:18px;border-radius:50%;
+  background:#fff;border:3px solid var(--p);
+  box-shadow:0 2px 6px rgba(0,0,0,.2);transition:left .5s ease;
+}
+.bmi-lblrow{display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted)}
 
-  /* ── Toast ── */
-  #toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #1f2937; color: #fff; padding: 10px 20px;
-    border-radius: 20px; font-size: .85rem; opacity: 0;
-    transition: opacity .3s; pointer-events: none; white-space: nowrap; z-index: 999;
-  }
-  #toast.show { opacity: 1; }
+/* Weight chart */
+.wchart{display:flex;align-items:flex-end;gap:5px;height:80px;padding-top:8px}
+.wbwrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.wbar{width:100%;border-radius:4px 4px 0 0;background:var(--grad);min-height:4px;transition:height .4s ease}
+.wblbl{font-size:.59rem;color:var(--muted);white-space:nowrap}
+.wbval{font-size:.62rem;color:var(--text);font-weight:700}
 
-  .empty-state { text-align: center; color: var(--muted); padding: 30px 0; font-size: .9rem; }
-  .empty-state .e { font-size: 2.5rem; margin-bottom: 8px; }
+/* AI Recommendations */
+.ai-box{
+  background:linear-gradient(135deg,#fce4ec,#f3e5f5);
+  border-radius:var(--r-lg);padding:16px;margin-bottom:12px;
+}
+.ai-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-badge{
+  background:var(--grad);color:#fff;font-size:.62rem;font-weight:800;
+  padding:2px 9px;border-radius:99px;letter-spacing:.05em;
+}
+.ai-htxt{font-weight:800;font-size:.93rem}
+.ai-analysis{
+  font-size:.82rem;color:var(--text);line-height:1.55;margin-bottom:12px;
+  padding:11px;background:rgba(255,255,255,.6);border-radius:var(--r-sm);
+}
+.meal-sec{margin-bottom:10px}
+.meal-ttl{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:#fff;border-radius:99px;padding:4px 11px;font-size:.76rem;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.chip.avoid{background:#fff3f3;color:#c62828}
+.tip-item{font-size:.79rem;color:var(--text);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.5)}
+.tip-item:last-child{border-bottom:none}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.7rem;font-weight:700}
+.badge-ok{background:#d1fae5;color:#065f46}
+.badge-up{background:#fee2e2;color:#991b1b}
+.badge-dn{background:#d1fae5;color:#065f46}
+.badge-fl{background:#f3f4f6;color:#6b7280}
+
+/* Progress bar */
+.pbar{background:var(--bg);border-radius:99px;height:5px;overflow:hidden;margin-top:5px}
+.pfill{height:100%;border-radius:99px;background:var(--grad);transition:width .6s ease}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:#1a1a2e;color:#fff;padding:9px 20px;border-radius:99px;
+  font-size:.82rem;opacity:0;transition:opacity .3s,transform .3s;
+  pointer-events:none;white-space:nowrap;z-index:999;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Empty state */
+.empty{text-align:center;color:var(--muted);padding:26px 0}
+.empty .e{font-size:2.3rem;margin-bottom:7px}
+.empty p{font-size:.85rem;line-height:1.5}
+
+/* Modal */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:200;display:none;align-items:flex-end;justify-content:center;
+}
+.modal.open{display:flex}
+.msheet{
+  background:#fff;border-radius:24px 24px 0 0;
+  padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));
+  width:100%;max-width:480px;max-height:80vh;overflow-y:auto;
+}
+.mhandle{width:38px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 18px}
+.mtitle{font-size:1.05rem;font-weight:800;margin-bottom:18px}
+
+/* Section heading */
+.sh{font-size:.95rem;font-weight:700;margin:4px 0 10px}
+.divider{height:1px;background:var(--border);margin:6px 0}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🌸 花期日历</h1>
-  <p>你的贴心经期管理助手</p>
+<header class="hdr">
+  <div class="hdr-row">
+    <div>
+      <h1>X 经期管理</h1>
+      <div class="hdr-sub" id="hdr-date"></div>
+    </div>
+    <button class="hdr-btn" onclick="openSettings()" title="设置">⚙️</button>
+  </div>
 </header>
 
-<nav>
-  <button class="active" onclick="showPage('home')">🏠 首页</button>
-  <button onclick="showPage('calendar')">📅 日历</button>
-  <button onclick="showPage('record')">✏️ 记录</button>
-  <button onclick="showPage('history')">📋 历史</button>
-  <button onclick="showPage('insights')">💡 分析</button>
-</nav>
-
-<!-- ════════════════════════ 首页 ════════════════════════ -->
+<!-- ══════ 首页 ══════ -->
 <div id="page-home" class="page active">
-
-  <div id="status-banner">
-    <div class="status-emoji" id="s-emoji">🌸</div>
-    <div class="status-title" id="s-title">加载中…</div>
-    <div class="status-sub"  id="s-sub"></div>
+  <div class="scard">
+    <div class="s-emoji" id="s-emoji">🌸</div>
+    <div class="s-title" id="s-title">加载中…</div>
+    <div class="s-sub"   id="s-sub"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">本周期概览</div>
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-val" id="stat-cycle">—</div>
-        <div class="stat-lbl">平均周期（天）</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-val" id="stat-duration">—</div>
-        <div class="stat-lbl">平均经期（天）</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-val" id="stat-next">—</div>
-        <div class="stat-lbl">距下次（天）</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-val" id="stat-records">0</div>
-        <div class="stat-lbl">记录次数</div>
-      </div>
+    <div class="ch"><span class="ct">周期概览</span></div>
+    <div class="sgrid">
+      <div class="si"><div class="sv" id="stat-cycle">—</div><div class="sl">平均周期（天）</div></div>
+      <div class="si"><div class="sv" id="stat-dur">—</div><div class="sl">平均经期（天）</div></div>
+      <div class="si"><div class="sv" id="stat-next">—</div><div class="sl">距下次（天）</div></div>
+      <div class="si"><div class="sv" id="stat-cnt">0</div><div class="sl">记录次数</div></div>
     </div>
   </div>
 
-  <div class="card" id="card-today-symptoms" style="display:none">
-    <div class="card-title">今日症状快记</div>
-    <div class="symptom-grid" id="quick-symptoms"></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="saveQuickSymptoms()">保存今日症状</button>
+  <div class="card" id="card-qsym" style="display:none">
+    <div class="ch"><span class="ct">今日症状快记</span></div>
+    <div class="sgrid3" id="quick-sym"></div>
+    <button class="btn btn-p" style="margin-top:12px" onclick="saveQuickSym()">💾 保存今日症状</button>
   </div>
 
   <div class="card">
-    <div class="card-title">周期提醒</div>
-    <div id="reminders-list"></div>
+    <div class="ch"><span class="ct">周期预测</span></div>
+    <div id="reminders"></div>
   </div>
-
 </div>
 
-<!-- ════════════════════════ 日历 ════════════════════════ -->
+<!-- ══════ 日历 ══════ -->
 <div id="page-calendar" class="page">
   <div class="card">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
-      <span id="cal-month-title"></span>
-      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    <div class="cal-nav">
+      <button class="cal-nbtn" onclick="chMonth(-1)">‹</button>
+      <span id="cal-title"></span>
+      <button class="cal-nbtn" onclick="chMonth(1)">›</button>
     </div>
-    <div class="cal-grid" id="cal-day-names"></div>
-    <div class="cal-grid" id="cal-body"></div>
+    <div class="cgrid" id="cal-names"></div>
+    <div class="cgrid" id="cal-body"></div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--period)"></div>经期</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--predict)"></div>预测经期</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--ovulate)"></div>排卵期</div>
-      <div class="legend-item"><div class="legend-dot" style="border:2px solid #ec4899"></div>今天</div>
+      <div class="litem"><div class="ldot" style="background:#ffb3c1"></div>经期</div>
+      <div class="litem"><div class="ldot" style="background:#ffe0b2"></div>预测</div>
+      <div class="litem"><div class="ldot" style="background:#b2ebf2"></div>排卵</div>
+      <div class="litem"><div class="ldot" style="border:2px solid var(--p)"></div>今天</div>
     </div>
   </div>
-  <div class="card" id="cal-day-detail" style="display:none">
-    <div class="card-title" id="cal-detail-title">选中日期</div>
-    <div id="cal-detail-body"></div>
-  </div>
+  <div id="cal-detail"></div>
 </div>
 
-<!-- ════════════════════════ 记录 ════════════════════════ -->
+<!-- ══════ 记录 ══════ -->
 <div id="page-record" class="page">
   <div class="card">
-    <div class="card-title">记录经期</div>
-    <div class="form-group">
-      <label>开始日期 *</label>
-      <input type="date" id="r-start">
+    <div class="ch"><span class="ct">记录经期</span></div>
+    <div class="row-fields" style="margin-bottom:14px">
+      <div class="fg"><label class="fl">开始日期 <span class="req">*</span></label><input type="date" id="r-start"></div>
+      <div class="fg"><label class="fl">结束日期 <span style="font-weight:400;color:var(--muted)">(可后补)</span></label><input type="date" id="r-end"></div>
     </div>
-    <div class="form-group">
-      <label>结束日期（可先不填，经期结束后再补）</label>
-      <input type="date" id="r-end">
-    </div>
-    <div class="form-group">
-      <label>经量</label>
+    <div class="fg">
+      <label class="fl">经量</label>
       <select id="r-flow">
         <option value="">请选择</option>
         <option value="少">少量</option>
@@ -319,534 +356,644 @@
         <option value="很多">很多</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>症状</label>
-      <div class="symptom-grid" id="record-symptoms"></div>
+    <div class="fg">
+      <label class="fl">症状</label>
+      <div class="sgrid3" id="rec-sym"></div>
     </div>
-    <div class="form-group">
-      <label>备注</label>
+    <div class="fg">
+      <label class="fl">备注</label>
       <textarea id="r-note" placeholder="心情、特殊情况…"></textarea>
     </div>
-    <button class="btn btn-primary" onclick="saveRecord()">💾 保存记录</button>
+    <button class="btn btn-p" onclick="saveRecord()">💾 保存记录</button>
   </div>
-</div>
-
-<!-- ════════════════════════ 历史 ════════════════════════ -->
-<div id="page-history" class="page">
+  <div class="sh" style="margin-top:6px">历史记录</div>
   <div id="history-list"></div>
 </div>
 
-<!-- ════════════════════════ 分析 ════════════════════════ -->
+<!-- ══════ 体重 ══════ -->
+<div id="page-weight" class="page">
+  <div class="card" id="bmi-card">
+    <div class="ch">
+      <span class="ct">体重 &amp; BMI</span>
+      <button class="btn btn-g btn-sm" onclick="openSettings()">设置身高</button>
+    </div>
+    <div id="bmi-content"><div class="empty"><div class="e">📏</div><p>请先在设置中填写身高</p></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">记录体重</span></div>
+    <div class="row-fields">
+      <div class="fg"><label class="fl">体重（kg）</label><input type="number" id="w-kg" placeholder="如 55.5" step="0.1" min="20" max="300"></div>
+      <div class="fg"><label class="fl">日期</label><input type="date" id="w-date" style="min-width:130px"></div>
+    </div>
+    <button class="btn btn-p" style="margin-top:12px" onclick="saveWeight()">📊 记录体重</button>
+  </div>
+
+  <div class="card" id="wchart-card" style="display:none">
+    <div class="ch"><span class="ct">近7天趋势</span><span id="trend-badge"></span></div>
+    <div class="wchart" id="wchart"></div>
+  </div>
+
+  <div id="ai-recs"></div>
+</div>
+
+<!-- ══════ 分析 ══════ -->
 <div id="page-insights" class="page">
   <div class="card">
-    <div class="card-title">周期分析</div>
-    <div id="insights-body">
-      <div class="empty-state"><div class="e">📊</div>记录2次以上经期后查看分析</div>
-    </div>
+    <div class="ch"><span class="ct">周期分析</span></div>
+    <div id="ins-body"><div class="empty"><div class="e">📊</div><p>记录2次以上经期后查看分析</p></div></div>
   </div>
   <div class="card">
-    <div class="card-title">常见症状频率</div>
-    <div id="symptom-stats"></div>
+    <div class="ch"><span class="ct">症状频率</span></div>
+    <div id="sym-stats"></div>
+  </div>
+</div>
+
+<!-- ══════ Bottom Nav ══════ -->
+<nav class="bnav">
+  <button class="ntab active" onclick="showPage('home')"><span class="ni">🏠</span>首页</button>
+  <button class="ntab" onclick="showPage('calendar')"><span class="ni">📅</span>日历</button>
+  <button class="ntab" onclick="showPage('record')"><span class="ni">✏️</span>记录</button>
+  <button class="ntab" onclick="showPage('weight')"><span class="ni">⚖️</span>体重</button>
+  <button class="ntab" onclick="showPage('insights')"><span class="ni">💡</span>分析</button>
+</nav>
+
+<!-- ══════ Settings Modal ══════ -->
+<div class="modal" id="modal-settings" onclick="bgClose(event,'modal-settings')">
+  <div class="msheet">
+    <div class="mhandle"></div>
+    <div class="mtitle">⚙️ 设置</div>
+    <div class="fg"><label class="fl">身高（cm）</label><input type="number" id="s-height" placeholder="如 165" min="100" max="250"></div>
+    <div class="fg"><label class="fl">自定义周期天数 <span style="font-weight:400;color:var(--muted)">(默认28)</span></label><input type="number" id="s-cycle" placeholder="28" min="20" max="45"></div>
+    <button class="btn btn-p" onclick="saveSettings()">保存设置</button>
+    <button class="btn btn-g" style="margin-top:8px" onclick="closeModal('modal-settings')">关闭</button>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div class="ct" style="margin-bottom:10px">数据管理</div>
+      <button class="btn btn-d" onclick="clearAll()">🗑️ 清除所有数据</button>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  数据模型 & 持久化
-// ══════════════════════════════════════════════════
-const SYMPTOMS_DEF = [
-  { key:"cramp",    label:"痛经",    icon:"😣" },
-  { key:"bloat",    label:"腹胀",    icon:"🫃" },
-  { key:"headache", label:"头痛",    icon:"🤕" },
-  { key:"mood",     label:"情绪波动", icon:"😢" },
-  { key:"tired",    label:"疲劳",    icon:"😴" },
-  { key:"acne",     label:"痘痘",    icon:"😤" },
-  { key:"breast",   label:"胸部不适", icon:"💢" },
-  { key:"backache", label:"腰痛",    icon:"🔙" },
-  { key:"nausea",   label:"恶心",    icon:"🤢" },
+// ═══════════════════ Constants ═══════════════════
+const SYMS = [
+  {key:"cramp",    lbl:"痛经",    ico:"😣"},
+  {key:"bloat",    lbl:"腹胀",    ico:"🫃"},
+  {key:"headache", lbl:"头痛",    ico:"🤕"},
+  {key:"mood",     lbl:"情绪波动", ico:"😢"},
+  {key:"tired",    lbl:"疲劳",    ico:"😴"},
+  {key:"acne",     lbl:"痘痘",    ico:"😤"},
+  {key:"breast",   lbl:"胸部不适", ico:"💢"},
+  {key:"backache", lbl:"腰痛",    ico:"🔙"},
+  {key:"nausea",   lbl:"恶心",    ico:"🤢"},
 ];
+const PAGE_IDX = {home:0,calendar:1,record:2,weight:3,insights:4};
 
-function load()  { return JSON.parse(localStorage.getItem("period_records") || "[]"); }
-function save(d) { localStorage.setItem("period_records", JSON.stringify(d)); }
-function loadSymptomLog() { return JSON.parse(localStorage.getItem("symptom_log") || "{}"); }
-function saveSymptomLog(d){ localStorage.setItem("symptom_log", JSON.stringify(d)); }
+// ═══════════════════ Storage ═══════════════════
+const LS = {
+  periods:  ()=>JSON.parse(localStorage.getItem("x_periods")||"[]"),
+  saveP:    d=>localStorage.setItem("x_periods", JSON.stringify(d)),
+  symlog:   ()=>JSON.parse(localStorage.getItem("x_symlog")||"{}"),
+  saveSymlog: d=>localStorage.setItem("x_symlog", JSON.stringify(d)),
+  wlog:     ()=>JSON.parse(localStorage.getItem("x_wlog")||"{}"),
+  saveWlog: d=>localStorage.setItem("x_wlog", JSON.stringify(d)),
+  cfg:      ()=>JSON.parse(localStorage.getItem("x_cfg")||"{}"),
+  saveCfg:  d=>localStorage.setItem("x_cfg", JSON.stringify(d)),
+};
 
-// ── date helpers ──
-const fmt  = d => d.toISOString().slice(0,10);
-const today = () => fmt(new Date());
-function addDays(str, n) {
-  const d = new Date(str); d.setDate(d.getDate() + n); return fmt(d);
-}
-function diffDays(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / 86400000);
-}
-function inRange(date, start, end) {
-  return date >= start && date <= end;
-}
+// ═══════════════════ Date Helpers ═══════════════════
+const fmt   = d=>d.toISOString().slice(0,10);
+const today = ()=>fmt(new Date());
+const addD  = (s,n)=>{const d=new Date(s);d.setDate(d.getDate()+n);return fmt(d)};
+const diffD = (a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
 
-// ── compute stats from records ──
-function computeStats() {
-  const recs = load().filter(r => r.start).sort((a,b) => a.start > b.start ? 1:-1);
-  let avgCycle = 28, avgDur = 5;
-  if (recs.length >= 2) {
-    const cycles = [];
-    for (let i = 1; i < recs.length; i++)
-      cycles.push(diffDays(recs[i-1].start, recs[i].start));
-    avgCycle = Math.round(cycles.reduce((a,b)=>a+b,0)/cycles.length);
+// ═══════════════════ Period Stats ═══════════════════
+function stats(){
+  const cfg=LS.cfg();
+  const recs=LS.periods().filter(r=>r.start).sort((a,b)=>a.start>b.start?1:-1);
+  let avgCycle=cfg.cycle||28, avgDur=5;
+  if(recs.length>=2){
+    const cs=[];for(let i=1;i<recs.length;i++)cs.push(diffD(recs[i-1].start,recs[i].start));
+    avgCycle=Math.round(cs.reduce((a,b)=>a+b,0)/cs.length);
   }
-  const withEnd = recs.filter(r => r.end);
-  if (withEnd.length) {
-    avgDur = Math.round(
-      withEnd.reduce((a,r) => a + diffDays(r.start, r.end) + 1, 0) / withEnd.length
-    );
-  }
-  const last = recs[recs.length - 1] || null;
-  return { recs, avgCycle, avgDur, last };
+  const we=recs.filter(r=>r.end);
+  if(we.length) avgDur=Math.round(we.reduce((a,r)=>a+diffD(r.start,r.end)+1,0)/we.length);
+  return{recs,avgCycle,avgDur,last:recs[recs.length-1]||null};
 }
 
-// ── predict next periods ──
-function getPredictions(n=3) {
-  const { recs, avgCycle, avgDur, last } = computeStats();
-  if (!last) return [];
-  const preds = [];
-  let base = last.start;
-  for (let i = 0; i < n; i++) {
-    const start = addDays(base, avgCycle);
-    const end   = addDays(start, avgDur - 1);
-    preds.push({ start, end, predicted: true });
-    base = start;
+function preds(n=3){
+  const{recs,avgCycle,avgDur,last}=stats();
+  if(!last)return[];
+  const out=[];let base=last.start;
+  for(let i=0;i<n;i++){
+    const s=addD(base,avgCycle),e=addD(s,avgDur-1);
+    out.push({start:s,end:e});base=s;
   }
-  return preds;
+  return out;
 }
 
-// ── build a set of all period dates ──
-function getPeriodDates() {
-  const set = {};
-  for (const r of load()) {
-    if (!r.start) continue;
-    const end = r.end || r.start;
-    let d = r.start;
-    while (d <= end) { set[d] = "period"; d = addDays(d, 1); }
+function periodDates(){
+  const m={};
+  for(const r of LS.periods()){
+    if(!r.start)continue;
+    const e=r.end||r.start;let d=r.start;
+    while(d<=e){m[d]="period";d=addD(d,1);}
   }
-  for (const p of getPredictions()) {
-    let d = p.start;
-    while (d <= p.end) { if (!set[d]) set[d] = "predict"; d = addDays(d, 1); }
+  for(const p of preds()){
+    let d=p.start;while(d<=p.end){if(!m[d])m[d]="predict";d=addD(d,1);}
   }
-  return set;
+  return m;
 }
 
-// ── ovulation dates (14 days before next predicted period) ──
-function getOvulationDates() {
-  const { avgCycle, avgDur } = computeStats();
-  const preds = getPredictions(3);
-  const set = {};
-  for (const p of preds) {
-    // ovulation window: ~day-14 from next period, ±2 days
-    for (let i = -2; i <= 2; i++) {
-      const d = addDays(p.start, -14 + i);
-      if (!set[d]) set[d] = "ovulate";
-    }
+function ovuDates(){
+  const m={};
+  for(const p of preds(3)){
+    for(let i=-2;i<=2;i++){const d=addD(p.start,-14+i);if(!m[d])m[d]="ovulate";}
   }
-  return set;
+  return m;
 }
 
-// ══════════════════════════════════════════════════
-//  Page nav
-// ══════════════════════════════════════════════════
-function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  document.getElementById("page-" + id).classList.add("active");
-  const btns = document.querySelectorAll("nav button");
-  const map = { home:0, calendar:1, record:2, history:3, insights:4 };
-  btns[map[id]].classList.add("active");
-  if (id === "home")     renderHome();
-  if (id === "calendar") renderCalendar();
-  if (id === "history")  renderHistory();
-  if (id === "insights") renderInsights();
+function phase(){
+  const td=today(),pd=periodDates(),od=ovuDates();
+  if(pd[td]==="period") return"period";
+  if(pd[td]==="predict")return"predict";
+  if(od[td]==="ovulate")return"ovulate";
+  return"safe";
 }
 
-// ══════════════════════════════════════════════════
-//  首页
-// ══════════════════════════════════════════════════
-function renderHome() {
-  const { recs, avgCycle, avgDur, last } = computeStats();
-  const td = today();
+// ═══════════════════ Navigation ═══════════════════
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".ntab").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page-"+id).classList.add("active");
+  document.querySelectorAll(".ntab")[PAGE_IDX[id]].classList.add("active");
+  if(id==="home")     renderHome();
+  if(id==="calendar") renderCal();
+  if(id==="record")  {initRecForm();renderHistory();}
+  if(id==="weight")   renderWeight();
+  if(id==="insights") renderInsights();
+}
 
-  // status banner
-  let emoji, title, sub;
-  const periodDates = getPeriodDates();
-  const ovrDates    = getOvulationDates();
+// ═══════════════════ Home ═══════════════════
+function renderHome(){
+  const{recs,avgCycle,avgDur}=stats();
+  const td=today();
+  const ph=phase();
+  let emoji,title,sub;
 
-  if (periodDates[td] === "period") {
-    // in period
-    const rec = recs.find(r => r.start <= td && (r.end||r.start) >= td);
-    const day = rec ? diffDays(rec.start, td) + 1 : 1;
-    emoji = "🩸"; title = `经期第 ${day} 天`; sub = "好好休息，多喝热水 💕";
-    // show quick symptoms
-    document.getElementById("card-today-symptoms").style.display = "block";
-    renderSymptomButtons("quick-symptoms", "quick");
-  } else if (ovrDates[td] === "ovulate") {
-    emoji = "🥚"; title = "排卵期"; sub = "注意身体信号～";
-    document.getElementById("card-today-symptoms").style.display = "none";
-  } else if (periodDates[td] === "predict") {
-    emoji = "📆"; title = "预测经期即将到来"; sub = "做好准备哦～";
-    document.getElementById("card-today-symptoms").style.display = "none";
-  } else if (last) {
-    const nextPred = getPredictions(1)[0];
-    const daysLeft = diffDays(td, nextPred?.start || addDays(td, 28));
-    if (daysLeft <= 3 && daysLeft > 0) {
-      emoji = "⏰"; title = `还有 ${daysLeft} 天来月经`; sub = "提前准备卫生用品 🌟";
-    } else if (daysLeft > 0) {
-      emoji = "🌸"; title = `安全期（还有 ${daysLeft} 天）`; sub = "保持好心情 🎵";
-    } else {
-      emoji = "❓"; title = "月经可能推迟了"; sub = "如超过7天，建议就医检查";
-    }
-    document.getElementById("card-today-symptoms").style.display = "none";
-  } else {
-    emoji = "👋"; title = "欢迎使用花期日历"; sub = "点击「记录」添加你的第一条经期数据";
-    document.getElementById("card-today-symptoms").style.display = "none";
+  if(ph==="period"){
+    const rec=recs.find(r=>r.start<=td&&(r.end||r.start)>=td);
+    const day=rec?diffD(rec.start,td)+1:1;
+    emoji="🩸";title=`经期第 ${day} 天`;sub="好好休息，注意保暖 💕";
+    document.getElementById("card-qsym").style.display="block";
+    renderSymBtns("quick-sym","quick");
+  }else if(ph==="ovulate"){
+    emoji="🥚";title="排卵期";sub="关注身体信号～";
+    document.getElementById("card-qsym").style.display="none";
+  }else if(ph==="predict"){
+    emoji="📆";title="预测经期即将到来";sub="提前做好准备哦～";
+    document.getElementById("card-qsym").style.display="none";
+  }else if(recs.length){
+    const np=preds(1)[0];
+    const dl=np?diffD(td,np.start):99;
+    if(dl<=3&&dl>0){emoji="⏰";title=`还有 ${dl} 天`;sub="准备卫生用品 🌟";}
+    else if(dl>0){emoji="🌸";title=`安全期（还有 ${dl} 天）`;sub="保持好心情 🎵";}
+    else{emoji="❓";title="月经可能推迟了";sub="超过7天建议就医检查";}
+    document.getElementById("card-qsym").style.display="none";
+  }else{
+    emoji="👋";title="欢迎使用 X 经期管理";sub="点击「记录」添加第一条数据";
+    document.getElementById("card-qsym").style.display="none";
   }
 
-  document.getElementById("s-emoji").textContent  = emoji;
-  document.getElementById("s-title").textContent  = title;
-  document.getElementById("s-sub").textContent    = sub;
+  document.getElementById("s-emoji").textContent=emoji;
+  document.getElementById("s-title").textContent=title;
+  document.getElementById("s-sub").textContent=sub;
 
-  // stats
-  document.getElementById("stat-cycle").textContent   = recs.length >= 2 ? avgCycle : "—";
-  document.getElementById("stat-duration").textContent= recs.length >= 1 ? avgDur   : "—";
-  document.getElementById("stat-records").textContent = recs.length;
+  document.getElementById("stat-cycle").textContent=recs.length>=2?avgCycle:"—";
+  document.getElementById("stat-dur").textContent=recs.length>=1?avgDur:"—";
+  document.getElementById("stat-cnt").textContent=recs.length;
+  const np=preds(1)[0];
+  document.getElementById("stat-next").textContent=np?Math.max(0,diffD(td,np.start)):"—";
 
-  const nextPred = getPredictions(1)[0];
-  if (nextPred) {
-    const d = diffDays(td, nextPred.start);
-    document.getElementById("stat-next").textContent = d > 0 ? d : 0;
-  } else {
-    document.getElementById("stat-next").textContent = "—";
-  }
-
-  // reminders
-  const remDiv = document.getElementById("reminders-list");
-  const preds  = getPredictions(2);
-  if (!preds.length) {
-    remDiv.innerHTML = `<div class="empty-state"><div class="e">🌙</div>添加经期记录后查看预测</div>`;
-    return;
-  }
-  remDiv.innerHTML = preds.map((p, i) => {
-    const d = diffDays(td, p.start);
-    const label = i === 0 ? "下次预测" : "再下次预测";
-    const icon  = d <= 3 ? "🔴" : d <= 7 ? "🟠" : "🟢";
-    return `<div class="insight-row">
-      <div class="insight-icon">${icon}</div>
-      <div class="insight-text">
-        <div class="t">${label}：${p.start} ～ ${p.end}</div>
-        <div class="s">${d > 0 ? `还有 ${d} 天` : d === 0 ? "今天开始！" : `已过 ${-d} 天`}</div>
-      </div>
-    </div>`;
+  const remDiv=document.getElementById("reminders");
+  const ps=preds(2);
+  if(!ps.length){remDiv.innerHTML=`<div class="empty"><div class="e">🌙</div><p>添加记录后查看预测</p></div>`;return;}
+  remDiv.innerHTML=ps.map((p,i)=>{
+    const d=diffD(td,p.start);
+    const ico=d<=3?"🔴":d<=7?"🟠":"🟢";
+    return`<div class="irow">
+      <div class="iico">${ico}</div>
+      <div class="itxt">
+        <div class="t">${i===0?"下次预测经期":"再下次"}: ${p.start} ～ ${p.end}</div>
+        <div class="s">${d>0?`还有 ${d} 天`:d===0?"今天开始！":`已过 ${-d} 天`}</div>
+      </div></div>`;
   }).join("");
 }
 
-// ══════════════════════════════════════════════════
-//  日历
-// ══════════════════════════════════════════════════
-let calYear, calMonth;
-(function() {
-  const now = new Date();
-  calYear = now.getFullYear();
-  calMonth = now.getMonth();
-})();
+// ═══════════════════ Calendar ═══════════════════
+let calY,calM;
+(()=>{const n=new Date();calY=n.getFullYear();calM=n.getMonth();})();
 
-function changeMonth(delta) {
-  calMonth += delta;
-  if (calMonth < 0)  { calMonth = 11; calYear--; }
-  if (calMonth > 11) { calMonth = 0;  calYear++; }
-  renderCalendar();
+function chMonth(d){
+  calM+=d;
+  if(calM<0){calM=11;calY--;}
+  if(calM>11){calM=0;calY++;}
+  renderCal();
 }
 
-function renderCalendar() {
-  const names = ["日","一","二","三","四","五","六"];
-  const dnEl  = document.getElementById("cal-day-names");
-  dnEl.innerHTML = names.map(n => `<div class="cal-day-name">${n}</div>`).join("");
-
-  const title = `${calYear}年${calMonth+1}月`;
-  document.getElementById("cal-month-title").textContent = title;
-
-  const periodDates = getPeriodDates();
-  const ovrDates    = getOvulationDates();
-  const td = today();
-
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-
-  let html = "";
-  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    let cls = "cal-day";
-    if (ds === td) cls += " today";
-    if (periodDates[ds] === "period")  cls += " period";
-    else if (ovrDates[ds] === "ovulate") cls += " ovulate";
-    else if (periodDates[ds] === "predict") cls += " predict";
-    html += `<div class="${cls}" onclick="calDayClick('${ds}')">${d}</div>`;
+function renderCal(){
+  const names=["日","一","二","三","四","五","六"];
+  document.getElementById("cal-names").innerHTML=names.map(n=>`<div class="cdn">${n}</div>`).join("");
+  document.getElementById("cal-title").textContent=`${calY}年${calM+1}月`;
+  const pd=periodDates(),od=ovuDates(),td=today();
+  const fd=new Date(calY,calM,1).getDay();
+  const dm=new Date(calY,calM+1,0).getDate();
+  let html="";
+  for(let i=0;i<fd;i++)html+=`<div class="cday empty"></div>`;
+  for(let d=1;d<=dm;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    let cls="cday";
+    if(ds===td)cls+=" today";
+    if(pd[ds]==="period")cls+=" period";
+    else if(od[ds]==="ovulate")cls+=" ovulate";
+    else if(pd[ds]==="predict")cls+=" predict";
+    html+=`<div class="${cls}" onclick="calClick('${ds}')">${d}</div>`;
   }
-  document.getElementById("cal-body").innerHTML = html;
-  document.getElementById("cal-day-detail").style.display = "none";
+  document.getElementById("cal-body").innerHTML=html;
+  document.getElementById("cal-detail").innerHTML="";
 }
 
-function calDayClick(ds) {
-  const periodDates = getPeriodDates();
-  const ovrDates    = getOvulationDates();
-  const recs = load();
-  const symLog = loadSymptomLog();
-  const detail = document.getElementById("cal-day-detail");
-  document.getElementById("cal-detail-title").textContent = ds;
-
-  let html = "";
-  const rec = recs.find(r => r.start <= ds && (r.end||r.start) >= ds);
-  if (rec) {
-    html += `<div class="insight-row">
-      <div class="insight-icon">🩸</div>
-      <div class="insight-text">
-        <div class="t">经期：${rec.start} ～ ${rec.end || "(未结束)"}</div>
-        <div class="s">经量：${rec.flow || "未记录"} · 第${diffDays(rec.start,ds)+1}天</div>
-        ${rec.note ? `<div class="s">${rec.note}</div>` : ""}
-      </div>
-    </div>`;
-  } else if (periodDates[ds] === "predict") {
-    html += `<div class="insight-row"><div class="insight-icon">📆</div><div class="insight-text"><div class="t">预测经期</div></div></div>`;
-  } else if (ovrDates[ds] === "ovulate") {
-    html += `<div class="insight-row"><div class="insight-icon">🥚</div><div class="insight-text"><div class="t">预测排卵期</div></div></div>`;
-  } else {
-    html += `<div class="insight-row"><div class="insight-icon">🌿</div><div class="insight-text"><div class="t">安全期</div></div></div>`;
+function calClick(ds){
+  const pd=periodDates(),od=ovuDates();
+  const recs=LS.periods(),sl=LS.symlog(),wl=LS.wlog();
+  let html="";
+  const rec=recs.find(r=>r.start<=ds&&(r.end||r.start)>=ds);
+  if(rec){
+    html+=`<div class="irow"><div class="iico">🩸</div><div class="itxt">
+      <div class="t">经期：${rec.start} ～ ${rec.end||"(进行中)"}</div>
+      <div class="s">经量：${rec.flow||"未记录"} · 第${diffD(rec.start,ds)+1}天</div>
+      ${rec.note?`<div class="s" style="font-style:italic">"${rec.note}"</div>`:""}
+    </div></div>`;
+  }else if(pd[ds]==="predict"){
+    html+=`<div class="irow"><div class="iico">📆</div><div class="itxt"><div class="t">预测经期</div></div></div>`;
+  }else if(od[ds]==="ovulate"){
+    html+=`<div class="irow"><div class="iico">🥚</div><div class="itxt"><div class="t">预测排卵期</div></div></div>`;
+  }else{
+    html+=`<div class="irow"><div class="iico">🌿</div><div class="itxt"><div class="t">安全期</div></div></div>`;
   }
-  if (symLog[ds]) {
-    const syms = SYMPTOMS_DEF.filter(s => symLog[ds][s.key]);
-    if (syms.length) html += `<div style="margin-top:8px;font-size:.8rem;color:#6b7280">症状：${syms.map(s=>s.icon+s.label).join(" · ")}</div>`;
+  if(sl[ds]){
+    const ss=SYMS.filter(s=>sl[ds][s.key]);
+    if(ss.length)html+=`<div class="irow"><div class="iico">💊</div><div class="itxt"><div class="t">症状</div><div class="s">${ss.map(s=>s.ico+s.lbl).join(" · ")}</div></div></div>`;
   }
-  document.getElementById("cal-detail-body").innerHTML = html || "暂无记录";
-  detail.style.display = "block";
+  if(wl[ds]){
+    html+=`<div class="irow"><div class="iico">⚖️</div><div class="itxt"><div class="t">体重：${wl[ds]} kg</div></div></div>`;
+  }
+  document.getElementById("cal-detail").innerHTML=`<div class="day-detail">
+    <div class="ct" style="margin-bottom:8px">${ds}</div>${html||'<div style="color:var(--muted);font-size:.83rem">暂无记录</div>'}
+  </div>`;
 }
 
-// ══════════════════════════════════════════════════
-//  记录页 & 症状按钮
-// ══════════════════════════════════════════════════
-function renderSymptomButtons(containerId, mode) {
-  const el = document.getElementById(containerId);
-  const symLog = loadSymptomLog();
-  const td = today();
-  const existing = (mode === "quick" && symLog[td]) ? symLog[td] : {};
-  el.innerHTML = SYMPTOMS_DEF.map(s => `
-    <div class="symptom-btn ${existing[s.key] ? "active" : ""}"
-         id="${mode}-${s.key}"
-         onclick="toggleSymptom('${mode}','${s.key}',this)">
-      <span class="s-icon">${s.icon}</span>${s.label}
+// ═══════════════════ Record ═══════════════════
+function renderSymBtns(cid,mode){
+  const el=document.getElementById(cid);
+  const sl=LS.symlog(),td=today();
+  const ex=(mode==="quick"&&sl[td])?sl[td]:{};
+  el.innerHTML=SYMS.map(s=>`
+    <div class="sbtn ${ex[s.key]?"active":""}" id="${mode}-${s.key}" onclick="toggleSym(this)">
+      <span class="si">${s.ico}</span>${s.lbl}
     </div>`).join("");
 }
 
-function toggleSymptom(mode, key, el) {
-  el.classList.toggle("active");
+function toggleSym(el){el.classList.toggle("active");}
+
+function getSelSyms(mode){
+  const m={};
+  SYMS.forEach(s=>{const el=document.getElementById(`${mode}-${s.key}`);if(el&&el.classList.contains("active"))m[s.key]=true;});
+  return m;
 }
 
-function getSelectedSymptoms(mode) {
-  const sel = {};
-  SYMPTOMS_DEF.forEach(s => {
-    const el = document.getElementById(`${mode}-${s.key}`);
-    if (el && el.classList.contains("active")) sel[s.key] = true;
-  });
-  return sel;
+function saveQuickSym(){
+  const sl=LS.symlog();sl[today()]=getSelSyms("quick");
+  LS.saveSymlog(sl);showToast("✅ 今日症状已保存");
 }
 
-function saveQuickSymptoms() {
-  const log = loadSymptomLog();
-  log[today()] = getSelectedSymptoms("quick");
-  saveSymptomLog(log);
-  showToast("✅ 今日症状已保存");
+function initRecForm(){
+  renderSymBtns("rec-sym","rec");
+  document.getElementById("r-start").value=today();
 }
 
-// 初始化记录页症状按钮
-function initRecordPage() {
-  renderSymptomButtons("record-symptoms", "record");
-  document.getElementById("r-start").value = today();
-}
-
-function saveRecord() {
-  const start = document.getElementById("r-start").value;
-  const end   = document.getElementById("r-end").value;
-  const flow  = document.getElementById("r-flow").value;
-  const note  = document.getElementById("r-note").value.trim();
-  const syms  = getSelectedSymptoms("record");
-
-  if (!start) { showToast("❌ 请填写开始日期"); return; }
-  if (end && end < start) { showToast("❌ 结束日期不能早于开始日期"); return; }
-
-  const recs = load();
-  // check overlap
-  const overlap = recs.find(r => {
-    const rEnd = r.end || r.start;
-    return (start <= rEnd && (end||start) >= r.start);
-  });
-  if (overlap) {
-    if (!confirm(`⚠️ 与已有记录（${overlap.start}）重叠，是否覆盖？`)) return;
-    const idx = recs.indexOf(overlap);
-    recs.splice(idx, 1);
+function saveRecord(){
+  const start=document.getElementById("r-start").value;
+  const end=document.getElementById("r-end").value;
+  const flow=document.getElementById("r-flow").value;
+  const note=document.getElementById("r-note").value.trim();
+  const syms=getSelSyms("rec");
+  if(!start){showToast("❌ 请填写开始日期");return;}
+  if(end&&end<start){showToast("❌ 结束日期不能早于开始日期");return;}
+  const recs=LS.periods();
+  const overlap=recs.find(r=>{const re=r.end||r.start;return start<=re&&(end||start)>=r.start;});
+  if(overlap){if(!confirm(`与已有记录(${overlap.start})重叠，是否替换？`))return;recs.splice(recs.indexOf(overlap),1);}
+  recs.push({id:Date.now(),start,end,flow,syms,note});
+  LS.saveP(recs);
+  if(Object.keys(syms).length){
+    const sl=LS.symlog();let d=start;
+    while(d<=(end||start)){sl[d]=syms;d=addD(d,1);}
+    LS.saveSymlog(sl);
   }
-
-  recs.push({ id: Date.now(), start, end, flow, syms, note });
-  save(recs);
-
-  // save symptoms to log
-  if (Object.keys(syms).length) {
-    const log = loadSymptomLog();
-    let d = start;
-    while (d <= (end||start)) { log[d] = syms; d = addDays(d, 1); }
-    saveSymptomLog(log);
-  }
-
   showToast("✅ 记录已保存！");
-  // reset form
-  document.getElementById("r-end").value  = "";
-  document.getElementById("r-flow").value = "";
-  document.getElementById("r-note").value = "";
-  renderSymptomButtons("record-symptoms", "record");
+  document.getElementById("r-end").value="";
+  document.getElementById("r-flow").value="";
+  document.getElementById("r-note").value="";
+  renderSymBtns("rec-sym","rec");
+  renderHistory();
 }
 
-// ══════════════════════════════════════════════════
-//  历史
-// ══════════════════════════════════════════════════
-function renderHistory() {
-  const recs = load().slice().reverse();
-  const el = document.getElementById("history-list");
-  if (!recs.length) {
-    el.innerHTML = `<div class="card"><div class="empty-state"><div class="e">📭</div>暂无记录<br><small>去「记录」页添加第一条数据</small></div></div>`;
-    return;
-  }
-  el.innerHTML = recs.map((r, i) => {
-    const dur = r.end ? diffDays(r.start, r.end) + 1 : "?";
-    const syms = SYMPTOMS_DEF.filter(s => r.syms && r.syms[s.key]).map(s => s.icon).join("");
-    return `<div class="record-item">
+function renderHistory(){
+  const recs=LS.periods().slice().reverse();
+  const el=document.getElementById("history-list");
+  if(!recs.length){el.innerHTML=`<div class="card"><div class="empty"><div class="e">📭</div><p>暂无记录</p></div></div>`;return;}
+  el.innerHTML=recs.map(r=>{
+    const dur=r.end?diffD(r.start,r.end)+1:"?";
+    const ss=SYMS.filter(s=>r.syms&&r.syms[s.key]).map(s=>s.ico).join("");
+    return`<div class="ritem">
       <div>
-        <div class="record-dates">🩸 ${r.start}${r.end ? " ～ " + r.end : " （进行中）"}</div>
-        <div class="record-meta">持续 ${dur} 天 · 经量：${r.flow || "未记录"} ${syms ? "· " + syms : ""}</div>
-        ${r.note ? `<div class="record-note">"${r.note}"</div>` : ""}
+        <div class="rdates">🩸 ${r.start}${r.end?" ～ "+r.end:" (进行中)"}</div>
+        <div class="rmeta">持续 ${dur} 天 · 经量：${r.flow||"未记录"}${ss?" · "+ss:""}</div>
+        ${r.note?`<div class="rnote">"${r.note}"</div>`:""}
       </div>
-      <button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})">删除</button>
+      <button class="btn btn-d btn-sm" onclick="delRecord(${r.id})">删除</button>
     </div>`;
   }).join("");
 }
 
-function deleteRecord(id) {
-  if (!confirm("确认删除这条记录？")) return;
-  const recs = load().filter(r => r.id !== id);
-  save(recs);
-  renderHistory();
-  showToast("🗑️ 已删除");
+function delRecord(id){
+  if(!confirm("确认删除？"))return;
+  LS.saveP(LS.periods().filter(r=>r.id!==id));
+  renderHistory();showToast("🗑️ 已删除");
 }
 
-// ══════════════════════════════════════════════════
-//  分析
-// ══════════════════════════════════════════════════
-function renderInsights() {
-  const { recs, avgCycle, avgDur } = computeStats();
-  const el = document.getElementById("insights-body");
+// ═══════════════════ Weight ═══════════════════
+function saveWeight(){
+  const w=parseFloat(document.getElementById("w-kg").value);
+  const d=document.getElementById("w-date").value||today();
+  if(!w||w<20||w>300){showToast("❌ 请输入有效体重");return;}
+  const wl=LS.wlog();wl[d]=w;LS.saveWlog(wl);
+  showToast("✅ 体重已记录！");
+  document.getElementById("w-kg").value="";
+  renderWeight();
+}
 
-  if (recs.length < 2) {
-    el.innerHTML = `<div class="empty-state"><div class="e">📊</div>记录2次以上经期后查看分析</div>`;
-  } else {
-    const cycles = [];
-    for (let i = 1; i < recs.length; i++)
-      cycles.push(diffDays(recs[i-1].start, recs[i].start));
-    const maxC = Math.max(...cycles), minC = Math.min(...cycles);
-    const regular = (maxC - minC) <= 7;
+function bmiCat(bmi){
+  if(bmi<18.5)return{lbl:"偏轻",color:"#60a5fa",tip:"建议适当增加营养摄入"};
+  if(bmi<24)  return{lbl:"正常",color:"#34d399",tip:"保持当前均衡饮食习惯"};
+  if(bmi<28)  return{lbl:"偏重",color:"#fbbf24",tip:"建议适当控制饮食，增加运动"};
+  return        {lbl:"肥胖",color:"#f87171",tip:"建议咨询医生，科学减重"};
+}
 
-    el.innerHTML = `
-      <div class="insight-row">
-        <div class="insight-icon">📏</div>
-        <div class="insight-text">
-          <div class="t">平均周期：${avgCycle} 天</div>
-          <div class="s">范围 ${minC}～${maxC} 天 · ${regular ? "✅ 较规律" : "⚠️ 波动较大"}</div>
-        </div>
+function wTrend(wl){
+  const ds=Object.keys(wl).sort().slice(-7);
+  if(ds.length<2)return"stable";
+  const diff=wl[ds[ds.length-1]]-wl[ds[0]];
+  return diff>1?"gaining":diff<-1?"losing":"stable";
+}
+
+function renderWeight(){
+  const cfg=LS.cfg(),wl=LS.wlog();
+  const wDates=Object.keys(wl).sort();
+  const latestW=wDates.length?wl[wDates[wDates.length-1]]:null;
+  const h=cfg.height;
+
+  // BMI
+  const bc=document.getElementById("bmi-content");
+  if(!h){
+    bc.innerHTML=`<div class="empty"><div class="e">📏</div><p>请在设置中填写身高</p></div>`;
+  }else if(!latestW){
+    bc.innerHTML=`<div class="empty"><div class="e">⚖️</div><p>记录体重后查看 BMI</p></div>`;
+  }else{
+    const hm=h/100,bmi=latestW/(hm*hm),bf=bmi.toFixed(1),cat=bmiCat(bmi);
+    const pct=Math.max(0,Math.min(100,(bmi-15)/20*100));
+    bc.innerHTML=`
+      <div class="bmi-wrap">
+        <div class="bmi-val" style="color:${cat.color}">${bf}</div>
+        <div class="bmi-lbl" style="color:${cat.color}">${cat.lbl}</div>
+        <div class="bmi-tip">${cat.tip}</div>
       </div>
-      <div class="insight-row">
-        <div class="insight-icon">📅</div>
-        <div class="insight-text">
-          <div class="t">平均经期：${avgDur} 天</div>
-          <div class="s">${avgDur >= 3 && avgDur <= 7 ? "✅ 在正常范围内（3~7天）" : "⚠️ 建议咨询医生"}</div>
-        </div>
-      </div>
-      <div class="insight-row">
-        <div class="insight-icon">🥚</div>
-        <div class="insight-text">
-          <div class="t">预测排卵日</div>
-          <div class="s">下次月经前约14天（周期第${avgCycle - 14}天）</div>
-        </div>
-      </div>
-      <div class="insight-row">
-        <div class="insight-icon">📈</div>
-        <div class="insight-text">
-          <div class="t">共记录 ${recs.length} 次经期</div>
-          <div class="s">数据越多，预测越准确</div>
-        </div>
+      <div class="bmi-bar"><div class="bmi-ind" style="left:${pct}%"></div></div>
+      <div class="bmi-lblrow"><span>偏轻 &lt;18.5</span><span>正常 ~24</span><span>偏重 ~28</span><span>肥胖 &gt;28</span></div>
+      <div style="text-align:center;margin-top:12px;font-size:.82rem;color:var(--muted)">
+        最新体重：<strong style="color:var(--text)">${latestW} kg</strong> · 身高：${h} cm
       </div>`;
   }
 
-  // symptom stats
-  const log = loadSymptomLog();
-  const counts = {};
-  SYMPTOMS_DEF.forEach(s => counts[s.key] = 0);
-  Object.values(log).forEach(day => {
-    SYMPTOMS_DEF.forEach(s => { if (day[s.key]) counts[s.key]++; });
-  });
-  const total = Object.values(log).length || 1;
-  const sorted = SYMPTOMS_DEF.slice().sort((a,b) => counts[b.key] - counts[a.key]);
-  const symEl = document.getElementById("symptom-stats");
-  if (!Object.values(counts).some(v => v > 0)) {
-    symEl.innerHTML = `<div class="empty-state" style="padding:16px"><div class="e">😊</div>暂无症状数据</div>`;
-    return;
+  // Chart
+  const cc=document.getElementById("wchart-card");
+  const recent=wDates.slice(-7);
+  if(recent.length>=2){
+    cc.style.display="block";
+    const ws=recent.map(d=>wl[d]);
+    const minW=Math.min(...ws)-1,maxW=Math.max(...ws)+1,range=maxW-minW||1;
+    const tr=wTrend(wl);
+    const tb=document.getElementById("trend-badge");
+    tb.innerHTML=tr==="gaining"?`<span class="badge badge-up">↑ 上升</span>`:
+                  tr==="losing"?`<span class="badge badge-dn">↓ 下降</span>`:
+                               `<span class="badge badge-fl">→ 平稳</span>`;
+    document.getElementById("wchart").innerHTML=recent.map(d=>{
+      const w=wl[d],hp=Math.max(8,(w-minW)/range*68);
+      return`<div class="wbwrap">
+        <div class="wbval">${w}</div>
+        <div class="wbar" style="height:${hp}px"></div>
+        <div class="wblbl">${d.slice(5)}</div>
+      </div>`;
+    }).join("");
+  }else{cc.style.display="none";}
+
+  // AI
+  const aiDiv=document.getElementById("ai-recs");
+  if(h&&latestW){
+    const hm=h/100,bmi=latestW/(hm*hm),tr=wTrend(wl),ph=phase();
+    aiDiv.innerHTML=genAI(bmi,tr,ph);
+  }else{
+    aiDiv.innerHTML=`<div class="ai-box">
+      <div class="ai-hdr"><span class="ai-badge">AI 分析</span><span class="ai-htxt">智能饮食建议</span></div>
+      <div class="ai-analysis">填写身高并记录体重后，AI 将根据您的 BMI、体重趋势和当前经期阶段，提供个性化饮食建议 🍽️</div>
+    </div>`;
   }
-  symEl.innerHTML = sorted.map(s => {
-    const pct = Math.round(counts[s.key] / total * 100);
-    if (!pct) return "";
-    return `<div class="insight-row">
-      <div class="insight-icon">${s.icon}</div>
-      <div class="insight-text" style="flex:1">
-        <div class="t">${s.label}</div>
-        <div style="background:#f3f4f6;border-radius:99px;height:6px;margin-top:4px">
-          <div style="width:${pct}%;background:linear-gradient(90deg,#ec4899,#a855f7);height:6px;border-radius:99px"></div>
-        </div>
+}
+
+function genAI(bmi,trend,ph){
+  let analysis="",bf=[],lf=[],df=[],snk=[],avoid=[],tips=[];
+  const cat=bmiCat(bmi);
+
+  if(bmi<18.5){
+    analysis=`您的 BMI 为 ${bmi.toFixed(1)}（${cat.lbl}），需增加热量和蛋白质摄入，保证三餐足量。`;
+    bf=["燕麦牛奶粥","全麦面包+鸡蛋","豆浆+包子"];
+    lf=["红烧肉饭","番茄炒蛋米饭","鸡腿饭"];
+    df=["清蒸鱼+米饭","排骨汤面","牛肉蔬菜炒饭"];
+    snk=["牛奶+饼干","混合坚果","香蕉","花生酱面包"];
+    avoid=["节食代餐","过度饮酒"];
+    tips=["每天三餐规律进食","适量增加坚果、乳制品","避免过度运动消耗热量","睡前可喝一杯温牛奶"];
+  }else if(bmi<24){
+    analysis=`您的 BMI 为 ${bmi.toFixed(1)}（${cat.lbl}），继续保持均衡饮食，注重食物多样性。`;
+    bf=["燕麦+水果","全麦吐司+牛奶","鸡蛋蔬菜饼"];
+    lf=["杂粮饭+清炒蔬菜+鱼","鸡肉蔬菜沙拉","豆腐蔬菜汤面"];
+    df=["蒸鱼+蔬菜+糙米","清炒时蔬+豆腐","鸡汤面"];
+    snk=["低糖酸奶","苹果/梨","少量坚果"];
+    avoid=["过多油炸食品","含糖饮料"];
+    tips=["保持饮食多样化","每天饮水1500～2000ml","规律三餐，不暴饮暴食"];
+  }else if(bmi<28){
+    analysis=`您的 BMI 为 ${bmi.toFixed(1)}（${cat.lbl}），建议减少精制碳水和热量，多吃蔬菜和优质蛋白。`;
+    bf=["杂粮粥+水煮蛋","无糖豆浆+全麦面包","蔬菜鸡蛋沙拉"];
+    lf=["糙米饭+清蒸鱼+蔬菜","鸡胸肉沙拉","蔬菜豆腐汤"];
+    df=["蔬菜汤+少量主食","清炒时蔬+豆腐","凉拌蔬菜+水煮鸡胸"];
+    snk=["黄瓜/胡萝卜条","无糖酸奶(小份)","苹果"];
+    avoid=["油炸食品","甜品糕点","含糖饮料","白面包","夜宵"];
+    tips=["晚餐不晚于19:00","细嚼慢咽每口嚼20次","饭前喝水减少食量","每周有氧运动3~4次"];
+  }else{
+    analysis=`您的 BMI 为 ${bmi.toFixed(1)}（${cat.lbl}），建议在医生指导下科学减重，严格控制热量。`;
+    bf=["蔬菜蛋白奶昔","水煮蛋+无糖豆浆","杂粮粥(小份)"];
+    lf=["大份沙拉+少量蛋白质","清蒸鱼+蔬菜","蔬菜清汤"];
+    df=["以蔬菜为主+少量蛋白","凉拌菜+豆腐","低脂汤类"];
+    snk=["黄瓜","西红柿","坚果(每天≤20g)"];
+    avoid=["高热量主食","油炸食品","甜品","含糖饮料","酒精","夜宵"];
+    tips=["建议咨询营养师","每天记录饮食热量","循序渐进每周减0.5~1kg","结合有氧运动"];
+  }
+
+  if(trend==="gaining"&&bmi>=24){analysis+=" 近期体重上升，需更严格控制饮食。";avoid.push("高热量零食");}
+  else if(trend==="losing"&&bmi<18.5){analysis+=" 近期体重持续下降，请及时补充营养。";tips.unshift("⚠️ 体重持续下降，建议就医");}
+  else if(trend==="gaining")tips.push("近期体重上升，注意控制零食摄入");
+  else if(trend==="losing"&&bmi>=18.5)tips.push("减重方向正确，继续保持 ✅");
+
+  let phNote="";
+  if(ph==="period"){
+    phNote="🩸 经期：多补铁质（红枣、菠菜、猪肝），喝温热姜枣茶，避免生冷食物。";
+    bf.unshift("红枣小米粥");snk.push("红糖姜茶");avoid.push("冰饮冷食","辛辣刺激");
+  }else if(ph==="ovulate"){
+    phNote="🥚 排卵期：增加优质蛋白（鱼、蛋、豆类），补充叶酸与维生素E。";
+    snk.push("核桃/杏仁");lf.push("菠菜炒鸡蛋");
+  }else if(ph==="predict"){
+    phNote="📆 经前期：减少盐分（防水肿），补充镁（香蕉），避免咖啡因。";
+    avoid.push("高盐食品","咖啡因");snk.push("香蕉");
+  }else{
+    phNote="🌸 安全期：保持均衡营养，补充钙质和维生素D。";snk.push("低脂牛奶/酸奶");
+  }
+
+  const chips=(arr,cls="")=>arr.map(f=>`<span class="chip ${cls}">${f}</span>`).join("");
+
+  return`<div class="ai-box">
+    <div class="ai-hdr"><span class="ai-badge">AI 智能分析</span><span class="ai-htxt">个性化饮食建议</span></div>
+    <div class="ai-analysis">${analysis}<br><br>${phNote}</div>
+    <div class="meal-sec"><div class="meal-ttl">🌅 早餐推荐</div><div class="chips">${chips(bf)}</div></div>
+    <div class="meal-sec"><div class="meal-ttl">☀️ 午餐推荐</div><div class="chips">${chips(lf)}</div></div>
+    <div class="meal-sec"><div class="meal-ttl">🌙 晚餐推荐</div><div class="chips">${chips(df)}</div></div>
+    <div class="meal-sec"><div class="meal-ttl">🍎 加餐/零食</div><div class="chips">${chips(snk)}</div></div>
+    ${avoid.length?`<div class="meal-sec"><div class="meal-ttl">🚫 建议避免</div><div class="chips">${chips(avoid,"avoid")}</div></div>`:""}
+    ${tips.length?`<div class="meal-sec"><div class="meal-ttl">💡 健康贴士</div>${tips.map(t=>`<div class="tip-item">• ${t}</div>`).join("")}</div>`:""}
+  </div>`;
+}
+
+// ═══════════════════ Insights ═══════════════════
+function renderInsights(){
+  const{recs,avgCycle,avgDur}=stats();
+  const el=document.getElementById("ins-body");
+  if(recs.length<2){
+    el.innerHTML=`<div class="empty"><div class="e">📊</div><p>记录2次以上经期后查看分析</p></div>`;
+  }else{
+    const cs=[];for(let i=1;i<recs.length;i++)cs.push(diffD(recs[i-1].start,recs[i].start));
+    const maxC=Math.max(...cs),minC=Math.min(...cs);
+    el.innerHTML=`
+      <div class="irow"><div class="iico">📏</div><div class="itxt">
+        <div class="t">平均周期：${avgCycle} 天</div>
+        <div class="s">范围 ${minC}～${maxC} 天 · ${(maxC-minC)<=7?"✅ 规律":"⚠️ 波动较大"}</div>
+      </div></div>
+      <div class="irow"><div class="iico">📅</div><div class="itxt">
+        <div class="t">平均经期：${avgDur} 天</div>
+        <div class="s">${avgDur>=3&&avgDur<=7?"✅ 正常范围（3～7天）":"⚠️ 异常，建议就医"}</div>
+      </div></div>
+      <div class="irow"><div class="iico">🥚</div><div class="itxt">
+        <div class="t">预测排卵日</div>
+        <div class="s">月经前约14天（周期第 ${avgCycle-14} 天）</div>
+      </div></div>
+      <div class="irow"><div class="iico">📈</div><div class="itxt">
+        <div class="t">共记录 ${recs.length} 次</div>
+        <div class="s">数据越多，预测越精准 ✨</div>
+      </div></div>`;
+  }
+
+  const sl=LS.symlog(),counts={};
+  SYMS.forEach(s=>counts[s.key]=0);
+  Object.values(sl).forEach(d=>SYMS.forEach(s=>{if(d[s.key])counts[s.key]++;}));
+  const total=Object.values(sl).length||1;
+  const se=document.getElementById("sym-stats");
+  const hasSym=Object.values(counts).some(v=>v>0);
+  if(!hasSym){se.innerHTML=`<div class="empty" style="padding:12px"><div class="e">😊</div><p>暂无症状数据</p></div>`;return;}
+  se.innerHTML=SYMS.slice().sort((a,b)=>counts[b.key]-counts[a.key]).filter(s=>counts[s.key]).map(s=>{
+    const pct=Math.round(counts[s.key]/total*100);
+    return`<div class="irow">
+      <div class="iico">${s.ico}</div>
+      <div class="itxt" style="flex:1">
+        <div class="t">${s.lbl}</div>
+        <div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
       </div>
-      <div style="font-size:.8rem;color:#ec4899;font-weight:700;min-width:32px;text-align:right">${pct}%</div>
+      <div style="font-size:.8rem;color:var(--p);font-weight:700;min-width:34px;text-align:right">${pct}%</div>
     </div>`;
   }).join("");
 }
 
-// ══════════════════════════════════════════════════
-//  Toast
-// ══════════════════════════════════════════════════
-let toastTimer;
-function showToast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+// ═══════════════════ Settings ═══════════════════
+function openSettings(){
+  const cfg=LS.cfg();
+  document.getElementById("s-height").value=cfg.height||"";
+  document.getElementById("s-cycle").value=cfg.cycle||"";
+  openModal("modal-settings");
+}
+function saveSettings(){
+  const h=parseFloat(document.getElementById("s-height").value);
+  const c=parseInt(document.getElementById("s-cycle").value);
+  const cfg=LS.cfg();
+  if(h&&h>100&&h<250)cfg.height=h;
+  if(c&&c>=20&&c<=45)cfg.cycle=c;
+  LS.saveCfg(cfg);
+  closeModal("modal-settings");
+  showToast("✅ 设置已保存");
+  renderWeight();
+}
+function clearAll(){
+  if(!confirm("确定清除所有数据？此操作不可撤销。"))return;
+  ["x_periods","x_symlog","x_wlog"].forEach(k=>localStorage.removeItem(k));
+  showToast("🗑️ 数据已清除");
+  closeModal("modal-settings");
+  renderHome();renderWeight();
 }
 
-// ══════════════════════════════════════════════════
-//  Init
-// ══════════════════════════════════════════════════
-initRecordPage();
-renderHome();
+// ═══════════════════ Modal ═══════════════════
+function openModal(id){document.getElementById(id).classList.add("open");}
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+function bgClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 
-// 注册 Service Worker（离线使用 + 可安装）
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js")
-      .then(() => console.log("✅ SW 注册成功"))
-      .catch(e => console.log("SW 注册失败:", e));
-  });
+// ═══════════════════ Toast ═══════════════════
+let tt;
+function showToast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg;el.classList.add("show");
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove("show"),2200);
 }
+
+// ═══════════════════ Init ═══════════════════
+(function init(){
+  const n=new Date();
+  const days=["周日","周一","周二","周三","周四","周五","周六"];
+  document.getElementById("hdr-date").textContent=
+    `${n.getFullYear()}年${n.getMonth()+1}月${n.getDate()}日 ${days[n.getDay()]}`;
+  document.getElementById("w-date").value=today();
+  initRecForm();
+  renderHome();
+  if("serviceWorker"in navigator){
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js")
+      .then(()=>console.log("✅ SW ok")).catch(e=>console.warn("SW:",e)));
+  }
+})();
 </script>
 </body>
 </html>
